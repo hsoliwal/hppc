@@ -30,7 +30,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-        java: [ '25' ]
+        java: [ '21', '25' ]
 
     steps:
       - name: Git checkout

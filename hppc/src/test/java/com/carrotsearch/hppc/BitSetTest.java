@@ -146,6 +146,32 @@ public class BitSetTest extends RandomizedTest {
     assertLongLookupContainer(jre, hppc.asLongLookupContainer());
   }
 
+  /** Positive long indices beyond addressable words must never wrap to word zero or one. */
+  @Test
+  public void testLongIndexOffsetDoesNotWrap() {
+    hppc.set(0L);
+    hppc.set(63L);
+    hppc.set(65L);
+    jre.set(0);
+    jre.set(63);
+    jre.set(65);
+
+    long[] originalWords = hppc.bits.clone();
+    for (long index : new long[] {
+      1L << 38, (1L << 38) + 63, (1L << 38) + 65, 1L << 39, Long.MAX_VALUE
+    }) {
+      assertFalse(hppc.get(index), "Out-of-range get must not wrap: " + index);
+      assertEquals(-1L, hppc.nextSetBit(index), "Out-of-range scan must not wrap: " + index);
+      hppc.clear(index);
+      assertArrayEquals(originalWords, hppc.bits, "Out-of-range clear must not wrap: " + index);
+    }
+
+    assertTrue(hppc.get(63L));
+    assertTrue(hppc.get(65L));
+    assertEquals(65L, hppc.nextSetBit(64L));
+    assertSame(jre, hppc);
+  }
+
   /** Assert that the two bitsets are identical. */
   private void assertSame(final java.util.BitSet jre, BitSet hppc) {
     // Cardinality and emptiness status.

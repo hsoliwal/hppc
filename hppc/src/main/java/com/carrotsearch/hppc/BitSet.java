@@ -485,10 +485,10 @@ public class BitSet implements Cloneable {
     int i = index >> 6;
     if (i >= wlen) return -1;
     int subIndex = index & 0x3f; // index within the word
-    long word = bits[i] >> subIndex; // skip all the bits to the right of index
+    long word = bits[i] & (-1L << subIndex); // mask away lower logical offsets
 
     if (word != 0) {
-      return (i << 6) + subIndex + Long.numberOfTrailingZeros(word);
+      return (i << 6) + Long.numberOfTrailingZeros(word);
     }
 
     while (++i < wlen) {
@@ -510,10 +510,10 @@ public class BitSet implements Cloneable {
     if (index >= 0 && wordIndex >= wlen) return -1;
     int i = (int) wordIndex;
     int subIndex = (int) index & 0x3f; // index within the word
-    long word = bits[i] >>> subIndex; // skip all the bits to the right of index
+    long word = bits[i] & (-1L << subIndex); // mask away lower logical offsets
 
     if (word != 0) {
-      return (((long) i) << 6) + (subIndex + Long.numberOfTrailingZeros(word));
+      return (((long) i) << 6) + Long.numberOfTrailingZeros(word);
     }
 
     while (++i < wlen) {

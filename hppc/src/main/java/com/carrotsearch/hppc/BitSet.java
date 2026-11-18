@@ -151,8 +151,10 @@ public class BitSet implements Cloneable {
    * @return Returns true or false for the specified bit index.
    */
   public boolean get(long index) {
-    int i = (int) (index >> 6); // div 64
-    if (i >= bits.length) return false;
+    // Check the full word offset before narrowing; large long indices must not alias low words.
+    long wordIndex = index >> 6;
+    if (wordIndex >= bits.length) return false;
+    int i = (int) wordIndex;
     int bit = (int) index & 0x3f; // mod 64
     long bitmask = 1L << bit;
     return (bits[i] & bitmask) != 0;
@@ -220,8 +222,10 @@ public class BitSet implements Cloneable {
    * @param index the index to clear
    */
   public void clear(long index) {
-    int wordNum = (int) (index >> 6); // div 64
-    if (wordNum >= wlen) return;
+    // Check the full word offset before narrowing, as with get(long).
+    long wordIndex = index >> 6;
+    if (wordIndex >= wlen) return;
+    int wordNum = (int) wordIndex;
     int bit = (int) index & 0x3f; // mod 64
     long bitmask = 1L << bit;
     bits[wordNum] &= ~bitmask;
@@ -501,8 +505,10 @@ public class BitSet implements Cloneable {
    *     if there are no more set bits.
    */
   public long nextSetBit(long index) {
-    int i = (int) (index >>> 6);
-    if (i >= wlen) return -1;
+    long wordIndex = index >>> 6;
+    // Retain the existing negative-index behavior of the unsigned shift.
+    if (index >= 0 && wordIndex >= wlen) return -1;
+    int i = (int) wordIndex;
     int subIndex = (int) index & 0x3f; // index within the word
     long word = bits[i] >>> subIndex; // skip all the bits to the right of index
 

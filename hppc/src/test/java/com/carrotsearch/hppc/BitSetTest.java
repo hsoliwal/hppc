@@ -13,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -170,6 +171,38 @@ public class BitSetTest extends RandomizedTest {
     assertTrue(hppc.get(65L));
     assertEquals(65L, hppc.nextSetBit(64L));
     assertSame(jre, hppc);
+  }
+
+  /** Out-of-range long mutators must not alias a physical word or corrupt the set. */
+  @Test
+  public void testLongIndexMutatorsCannotWrapPhysicalWords() {
+    hppc = new BitSet(128);
+    hppc.set(0L);
+    hppc.set(63L);
+    hppc.set(65L);
+    jre.set(0);
+    jre.set(63);
+    jre.set(65);
+
+    long[] originalWords = hppc.bits.clone();
+    for (long index : new long[] {
+      1L << 38, (1L << 38) + 63, (1L << 38) + 65, 1L << 39, Long.MAX_VALUE
+    }) {
+      assertThrows(ArrayIndexOutOfBoundsException.class, () -> hppc.set(index));
+      assertThrows(ArrayIndexOutOfBoundsException.class, () -> hppc.flip(index));
+      assertThrows(ArrayIndexOutOfBoundsException.class, () -> hppc.getAndSet(index));
+      assertThrows(ArrayIndexOutOfBoundsException.class, () -> hppc.flipAndGet(index));
+      assertArrayEquals(originalWords, hppc.bits, "Mutators must not alias: " + index);
+    }
+
+    hppc.clear(1L << 38, (1L << 38) + 256);
+    assertArrayEquals(originalWords, hppc.bits, "Distant range clear must not alias");
+    hppc.clear(63L, Long.MAX_VALUE);
+    jre.clear(63, 128);
+    assertSame(jre, hppc);
+    assertTrue(hppc.get(0L));
+    assertFalse(hppc.get(63L));
+    assertFalse(hppc.get(65L));
   }
 
   /** Assert that the two bitsets are identical. */

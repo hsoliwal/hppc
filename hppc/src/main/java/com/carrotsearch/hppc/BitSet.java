@@ -707,6 +707,10 @@ public class BitSet implements Cloneable {
    * returns the number of 64 bit words it would take to hold numBits
    */
   public static int bits2words(long numBits) {
+    // A narrowing cast must not alias an unrepresentable high word count to a low capacity.
+    if (numBits > ((long) Integer.MAX_VALUE << 6)) {
+      throw new IllegalArgumentException("Bit count exceeds indexed word capacity: " + numBits);
+    }
     return (int) (((numBits - 1) >>> 6) + 1);
   }
 

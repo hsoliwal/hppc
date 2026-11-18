@@ -202,7 +202,11 @@ public class BitSet implements Cloneable {
   }
 
   protected int expandingWordNum(long index) {
-    int wordNum = (int) (index >> 6);
+    long fullWordNum = index >> 6;
+    // Reject a long physical offset that cannot be represented in the indexed word array.
+    if (fullWordNum >= Integer.MAX_VALUE)
+      throw new ArrayIndexOutOfBoundsException("Bit index out of range: " + index);
+    int wordNum = (int) fullWordNum;
     if (wordNum >= wlen) {
       ensureCapacity(index + 1);
       wlen = wordNum + 1;
@@ -278,12 +282,13 @@ public class BitSet implements Cloneable {
   public void clear(long startIndex, long endIndex) {
     if (endIndex <= startIndex) return;
 
-    int startWord = (int) (startIndex >> 6);
-    if (startWord >= wlen) return;
+    long fullStartWord = startIndex >> 6;
+    if (fullStartWord >= wlen) return;
+    int startWord = (int) fullStartWord;
 
-    // since endIndex is one past the end, this is index of the last
-    // word to be changed.
-    int endWord = (int) ((endIndex - 1) >> 6);
+    // Clip the range end before narrowing its physical word index.
+    long fullEndWord = (endIndex - 1) >> 6;
+    int endWord = fullEndWord >= wlen ? wlen : (int) fullEndWord;
 
     long startmask = -1L << startIndex;
     long endmask = -1L >>> -endIndex; // 64-(endIndex&0x3f) is the same as -endIndex
@@ -330,7 +335,10 @@ public class BitSet implements Cloneable {
    * @return previous state of the index
    */
   public boolean getAndSet(long index) {
-    int wordNum = (int) (index >> 6); // div 64
+    long fullWordNum = index >> 6;
+    if (fullWordNum >= bits.length)
+      throw new ArrayIndexOutOfBoundsException("Bit index out of range: " + index);
+    int wordNum = (int) fullWordNum;
     int bit = (int) index & 0x3f; // mod 64
     long bitmask = 1L << bit;
     boolean val = (bits[wordNum] & bitmask) != 0;
@@ -373,7 +381,10 @@ public class BitSet implements Cloneable {
    * @return the new state of the index
    */
   public boolean flipAndGet(long index) {
-    int wordNum = (int) (index >> 6); // div 64
+    long fullWordNum = index >> 6;
+    if (fullWordNum >= bits.length)
+      throw new ArrayIndexOutOfBoundsException("Bit index out of range: " + index);
+    int wordNum = (int) fullWordNum;
     int bit = (int) index & 0x3f; // mod 64
     long bitmask = 1L << bit;
     bits[wordNum] ^= bitmask;

@@ -158,9 +158,8 @@ public class BitSetTest extends RandomizedTest {
     jre.set(65);
 
     long[] originalWords = hppc.bits.clone();
-    for (long index : new long[] {
-      1L << 38, (1L << 38) + 63, (1L << 38) + 65, 1L << 39, Long.MAX_VALUE
-    }) {
+    for (long index :
+        new long[] {1L << 38, (1L << 38) + 63, (1L << 38) + 65, 1L << 39, Long.MAX_VALUE}) {
       assertFalse(hppc.get(index), "Out-of-range get must not wrap: " + index);
       assertEquals(-1L, hppc.nextSetBit(index), "Out-of-range scan must not wrap: " + index);
       hppc.clear(index);
@@ -185,9 +184,8 @@ public class BitSetTest extends RandomizedTest {
     jre.set(65);
 
     long[] originalWords = hppc.bits.clone();
-    for (long index : new long[] {
-      1L << 38, (1L << 38) + 63, (1L << 38) + 65, 1L << 39, Long.MAX_VALUE
-    }) {
+    for (long index :
+        new long[] {1L << 38, (1L << 38) + 63, (1L << 38) + 65, 1L << 39, Long.MAX_VALUE}) {
       assertThrows(ArrayIndexOutOfBoundsException.class, () -> hppc.set(index));
       assertThrows(ArrayIndexOutOfBoundsException.class, () -> hppc.flip(index));
       assertThrows(ArrayIndexOutOfBoundsException.class, () -> hppc.getAndSet(index));

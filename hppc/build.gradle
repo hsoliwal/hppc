@@ -56,6 +56,15 @@ task generateTestTemplates(type: GenerateTemplatesTask) {
   outputDir = file("$buildDir/generated/test/templates")
 }
 
+// Fork-added test files that carry their author's own copyright and SPDX header.
+// The project license-header step would replace that header with the Carrot Search
+// one, misattributing them, so they are formatted by the separate
+// 'forkOwnedJava' format below instead of the default java format.
+def forkOwnedJavaSources = [
+  "src/test/java/com/carrotsearch/hppc/BitSetCapacityWordsTest.java",
+  "src/test/java/com/carrotsearch/hppc/BitSetMaskScanTest.java"
+]
+
 spotless {
   java {
     // Exclude templates and generated files, at least for now.
@@ -64,8 +73,25 @@ spotless {
       "build/**",
       "src/main/templates/**",
       "src/test/templates/**"
-    ])
+    ] + forkOwnedJavaSources)
   }
+
+  // The same steps the buildinfra plugin applies to java, except licenseHeaderFile.
+  format('forkOwnedJava', com.diffplug.gradle.spotless.JavaExtension, {
+    target forkOwnedJavaSources
+
+    encoding "UTF-8"
+    importOrder()
+    removeUnusedImports()
+    trimTrailingWhitespace()
+    endWithNewline()
+    addStep(new com.carrotsearch.gradle.buildinfra.spotless.ApplySpotlessFormattingPlugin.WildcardImportDetectorStep())
+
+    def gjf = googleJavaFormat(libs.versions.googleJavaFormat.get())
+    gjf.formatJavadoc(true)
+    gjf.reorderImports(true)
+    gjf.reflowLongStrings(false)
+  })
 
   format('templates', com.diffplug.gradle.spotless.JavaExtension, {
     target "$buildDir/generated/main/templates"

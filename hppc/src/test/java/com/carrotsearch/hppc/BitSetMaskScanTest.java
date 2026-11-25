@@ -52,8 +52,7 @@ public class BitSetMaskScanTest {
     actual.set(0);
     actual.set(63);
     actual.set(127);
-    for (long first : new long[] {1L << 37, 1L << 38,
-        1L << 40, 1L << 48, Long.MAX_VALUE}) {
+    for (long first : new long[] {1L << 37, 1L << 38, 1L << 40, 1L << 48, Long.MAX_VALUE}) {
       assertEquals(-1L, actual.nextSetBit(first));
     }
   }

@@ -1,8 +1,11 @@
 /*
  * HPPC
  *
- * Copyright (C) 2026 Hitesh Soliwal and contributors
- * SPDX-License-Identifier: Apache-2.0
+ * Copyright (C) 2010-2026 Carrot Search s.c. and contributors
+ * All rights reserved.
+ *
+ * Refer to the full license file "LICENSE.txt":
+ * https://github.com/carrotsearch/hppc/blob/master/LICENSE.txt
  */
 package com.carrotsearch.hppc;
 
